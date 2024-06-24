@@ -1,0 +1,11 @@
+(13:45:27)(Send)(SocketT451) Create connection
+(13:45:27)(Send)(SocketT451) CommandID = 0x80FD(Connect)
+(13:45:27)(Recv)(SocketT451) CommandID = 0x80fd
+(13:45:27)(Parser)(Get Client ID) CommandID = 0x80FD
+(13:45:27)(Send)(SocketT451) CommandID = 0x0011(Lock Port), Slot 0
+(13:45:28)(Send)(SocketT451) CommandID = 0x00B7(Set Group), Group ID = 0
+(13:45:28)(Send)(SocketT451) CommandID = 0x00B7(Set Group), Group ID = 1
+(13:45:29)(Send)(SocketT451) CommandID = 0x00B8(Set All Test Config), Slot 0
+(13:45:32)(Send)(SocketT451) CommandID = 0x00AD(Start Read Port Counter) - Group
+(13:45:33)(Send)(SocketT451) CommandID = 0x00C0(OpenRelay), Slot 0
+(13:45:35)(Send)(SocketT451) CommandID = 0x00A8(Start Connect Test), Slot 0

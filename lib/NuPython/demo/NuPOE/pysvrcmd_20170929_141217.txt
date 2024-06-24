@@ -1,0 +1,42 @@
+(14:12:17)(Send)(SocketT451) Create connection
+(14:12:17)(Send)(SocketT451) CommandID = 0x80FD(Connect)
+(14:12:17)(Recv)(SocketT451) CommandID = 0x80fd
+(14:12:17)(Parser)(Get Client ID) CommandID = 0x80FD
+(14:12:17)(Send)(SocketT451) CommandID = 0x0011(Lock Port), Slot 0
+(14:12:17)(Recv)(SocketT451) CommandID = 0x8011
+(14:12:19)(Send)(SocketT451) CommandID = 0x00B7(Set Group), Group ID = 0
+(14:12:19)(Send)(SocketT451) CommandID = 0x00B7(Set Group), Group ID = 1
+(14:12:19)(Recv)(SocketT451) CommandID = 0x80b7
+(14:12:19)(Recv)(SocketT451) CommandID = 0x80b7
+(14:12:20)(Send)(SocketT451) CommandID = 0x00B8(Set All Test Config), Slot 0
+(14:12:20)(Recv)(SocketT451) CommandID = 0x80b8
+(14:12:22)(Send)(SocketT451) CommandID = 0x00AD(Start Read Port Counter) - Group
+(14:12:22)(Recv)(SocketT451) CommandID = 0x80ad
+(14:12:23)(Send)(SocketT451) CommandID = 0x00C0(OpenRelay), Slot 0
+(14:12:23)(Recv)(SocketT451) CommandID = 0x80c0
+(14:12:26)(Send)(SocketT451) CommandID = 0x00A8(Start Connect Test), Slot 0
+(14:12:26)(Recv)(SocketT451) CommandID = 0x80a8
+(14:12:26)(Recv)(SocketT451) CommandID = 0x90b9
+(14:12:26)(Parser)(Counter Report) CommandID = 0x90B9
+(14:12:26)(Recv)(SocketT451) CommandID = 0x90b9
+(14:12:26)(Parser)(Counter Report) CommandID = 0x90B9
+(14:12:27)(Recv)(SocketT451) CommandID = 0x90b9
+(14:12:27)(Parser)(Counter Report) CommandID = 0x90B9
+(14:12:27)(Recv)(SocketT451) CommandID = 0x90b9
+(14:12:27)(Parser)(Counter Report) CommandID = 0x90B9
+(14:12:28)(Recv)(SocketT451) CommandID = 0x90b9
+(14:12:28)(Parser)(Counter Report) CommandID = 0x90B9
+(14:12:28)(Recv)(SocketT451) CommandID = 0x90ba
+(14:12:28)(Parser)(Connect Report) CommandID = 0x90BA
+(14:12:37)(Send)(SocketT451) CommandID = 0x00C0(OpenRelay), Slot 0
+(14:12:37)(Recv)(SocketT451) CommandID = 0x80c0
+(14:12:40)(Send)(SocketT451) CommandID = 0x00AE(Stop Port Counter) - Group
+(14:12:40)(Send)(SocketT451) CommandID = 0x00AC(Stop Test) - Group
+(14:12:40)(Recv)(SocketT451) CommandID = 0x80ae
+(14:12:40)(Send)(SocketT451) CommandID = 0x00C0(OpenRelay) - Group
+(14:12:40)(Recv)(SocketT451) CommandID = 0x80ac
+(14:12:40)(Recv)(SocketT451) CommandID = 0x80c0
+(14:12:41)(Send)(SocketT451) CommandID = 0x0011(Lock Port), Slot 0
+(14:12:41)(Recv)(SocketT451) CommandID = 0x8011
+(14:12:44)(Send)(SocketT451) Close connection
+(14:12:44)(Log)(SocketT451) SocketT451 terminate!
