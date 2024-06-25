@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox, Menu, ttk
+from tkinter import messagebox, Menu
 import time
 import configparser
 import threading
@@ -135,12 +135,14 @@ class ChamberCtrl:
                 return "Invalid program number. Please enter a numeric value."
         return "Not connected"
 
-class ChamberForm(tk.Frame):
-    def __init__(self, parent, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
+class WindowForm(tk.Tk):
+    def __init__(self):
+        super().__init__()
         self.init_config()
         self.init_variables() 
         self.init_window()
+        self.create_menu()
+        self.create_status_frame()
         self.create_connection_frame()
         self.create_monitor_frames()
         self.create_program_frames()
@@ -159,7 +161,33 @@ class ChamberForm(tk.Frame):
         self.flag_dbg_mode = False
 
     def init_window(self):
+        self.title(f"{PROGRAM_NAME} V{CODE_VERSION}")
+        self.geometry("600x520")
         self.configure(background='#303841')
+        self.resizable(False, False)
+
+    def create_menu(self):
+        self.menubar = Menu(self)
+        menu_file = Menu(self.menubar, tearoff=0)
+        menu_file.add_command(label="Unused", command=None)
+        menu_file.add_separator()
+        menu_file.add_command(label="Exit", command=None)
+        self.menubar.add_cascade(label="File", menu=menu_file)
+
+        menu_ctrl = Menu(self.menubar, tearoff=0)
+        menu_ctrl.add_command(label="Chb Time Sync", command=None)
+
+        menu_help = Menu(self.menubar, tearoff=0)
+        menu_help.add_command(label="Debug mode", command=self.debug_mode)
+        menu_help.add_command(label="About", command=self.about)
+        self.menubar.add_cascade(label="Help", menu=menu_help)
+        self.config(menu=self.menubar)
+
+    def create_status_frame(self):
+        self.frame_status = tk.Frame(self, bg='#303841', bd=2, relief=tk.SUNKEN)
+        self.frame_status.pack(side=tk.BOTTOM, fill=tk.X)
+        self.lbl_pc_time = tk.Label(self.frame_status, text="", bg='#303841', fg='white')
+        self.lbl_pc_time.pack(side=tk.RIGHT, padx=3, pady=3)
 
     def create_connection_frame(self):
         self.frame_chamber_connect = tk.Frame(self, bg='#303841')
@@ -282,6 +310,9 @@ class ChamberForm(tk.Frame):
         self.canvas_indicator.itemconfig(self.indicator, fill=color)
 
     def update_status(self):
+        current_time = time.strftime("%Y-%m-%d %H:%M:%S")
+        self.lbl_pc_time.config(text=f" {current_time}")
+        
         if not self.chamber_ctrl.flag_connect or self.flag_dbg_mode:
             self.after(1000, self.update_status)
             return
@@ -317,6 +348,43 @@ class ChamberForm(tk.Frame):
         finally:
             self.after(1000, self.update_status)
 
+    '''
+    def update_status(self):
+        current_time = time.strftime("%Y-%m-%d %H:%M:%S")
+        self.lbl_pc_time.config(text=f" {current_time}")
+        if self.chamber_ctrl.flag_connect and not self.flag_dbg_mode:
+            if self.check_chamber():
+                self.update_indicator(True)
+            else:
+                self.update_indicator(False)
+                print("Chamber is disconnected. Updating flag and UI.")
+                self.chamber_ctrl.flag_connect = False
+                self.btn_chb_connect.config(state=tk.NORMAL)
+                self.entry_chb_connect.config(state=tk.NORMAL, bg='white')
+                messagebox.showwarning("Connection Lost", "The connection to the chamber has been lost.")
+                return
+
+        try:
+            chb_time_str = self.chamber_ctrl.chamber.GetChbTime()
+            self.lbl_chb_time.config(text=f"Time : {chb_time_str}")
+
+            chbst_prgnum = self.chamber_ctrl.chamber.GetProgStat()
+            chbst_prgset = self.chamber_ctrl.chamber.GetProgSet()
+            chbst_mon = self.chamber_ctrl.chamber.GetCondition()
+
+            self.lbl_chb_monlst[0].config(text=f"Measure Temp : {chbst_mon[0]}\t\t Measure Humi : {chbst_mon[1]}")
+            self.lbl_chb_monlst[1].config(text=f"Mode : {chbst_mon[2]}\t\t Alarms : {chbst_mon[3]}")
+
+            self.lbl_chbst_prg[0].config(text=f"PRG No.{chbst_prgset[0]}\t\t PRG Name: {chbst_prgset[1]} \t\t {chbst_prgnum[3]}")
+            self.lbl_chbst_prg[1].config(text=f"Step {chbst_prgnum[0]} / {chbst_prgnum[1]} \t\t Repeat {chbst_prgnum[2]}")
+            self.lbl_chbst_prg[2].config(text=f"Temp: {chbst_prgset[2]} / {chbst_prgset[4]} \t\t Humi: {chbst_prgset[3]} / {chbst_prgset[5]}")
+
+        except Exception as e:
+            print(f"An error occurred while updating status: {e}")
+
+        self.after(1000, self.update_status)
+    '''
+
     def chamber_load_prgm(self):
         prg_num = self.entry_prgload_num.get()
         result = self.chamber_ctrl.chamber_load_prgm(prg_num)
@@ -334,124 +402,11 @@ class ChamberForm(tk.Frame):
         if result is not True:
             messagebox.showwarning("Program Pause Error", result)
 
-    #def get_canvas_indicator(self):
-            #return self.canvas_indicator
-
-
-class SummaryForm(tk.Frame):
-    def __init__(self, parent, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-        self.create_dev_connection_frame()
-
-    def create_dev_connection_frame(self):
-        self.frame_summary_connect = tk.Frame(self, bg='#303841')
-        self.frame_summary_connect.pack(side=tk.TOP, fill=tk.BOTH)
-
-        self.lbl_summary_connect = tk.Label(self.frame_summary_connect, text="Chamber", bg='#303841', fg='white')
-        self.lbl_summary_connect.pack(side=tk.LEFT, padx=3, pady=3)
-
-
-class WindowForm(tk.Tk):
-    def __init__(self):
-        super().__init__()
-        self.init_config()
-        self.init_variables() 
-        self.init_window()
-        self.create_menu()
-        self.create_status_frame()
-        self.create_notebook()
-        self.update_Window_status()
-
-    def init_config(self):
-        config = configparser.ConfigParser()
-        config.read('config.ini')
-        self.chamber_ip = config['setting']['Chamber_IP']
-
-    def init_variables(self):
-        self._chamber_port = "57732"
-        self.chamber_ctrl = ChamberCtrl(self.chamber_ip, self._chamber_port)
-        self.flag_dbg_mode = False
-
-    def init_window(self):
-        self.title(f"{PROGRAM_NAME} V{CODE_VERSION}")
-        self.geometry("600x550")
-        self.configure(background='#303841')
-        self.resizable(False, False)
-
-    def create_menu(self):
-        self.menubar = Menu(self)
-        menu_file = Menu(self.menubar, tearoff=0)
-        menu_file.add_command(label="Unused", command=None)
-        menu_file.add_separator()
-        menu_file.add_command(label="Exit", command=None)
-        self.menubar.add_cascade(label="File", menu=menu_file)
-
-        menu_ctrl = Menu(self.menubar, tearoff=0)
-        menu_ctrl.add_command(label="Chb Time Sync", command=None)
-
-        menu_help = Menu(self.menubar, tearoff=0)
-        menu_help.add_command(label="Debug mode", command=self.debug_mode)
-        menu_help.add_command(label="About", command=self.about)
-        self.menubar.add_cascade(label="Help", menu=menu_help)
-        self.config(menu=self.menubar)
-
-    def create_status_frame(self):
-        self.frame_status = tk.Frame(self, bg='#303841', bd=2, relief=tk.SUNKEN)
-        self.frame_status.pack(side=tk.BOTTOM, fill=tk.X)
-        self.lbl_pc_time = tk.Label(self.frame_status, text="", bg='#303841', fg='white')
-        self.lbl_pc_time.pack(side=tk.RIGHT, padx=3, pady=3)
-
-    def create_notebook(self):
-        style = ttk.Style()
-        style.theme_create('custom_theme', parent='alt', settings={
-            'TNotebook': {
-                'configure': {
-                    'tabmargins': [2, 5, 2, 0]
-                }
-            },
-            'TNotebook.Tab': {
-                'configure': {
-                    'padding': [5, 1],
-                    'background': '#4F565E',
-                    'foreground': '#C6C2C4'
-                },
-                'map': {
-                    'background': [('selected', '#303841')],
-                    'foreground': [('selected', 'white')],
-                    'expand': [('selected', [1, 1, 1, 0])]
-                }
-            }
-        })
-        style.theme_use('custom_theme')
-
-        self.notebook = ttk.Notebook(self)
-        self.notebook.pack(expand=True, fill='both')
-
-        self.summary_frame = tk.Frame(self.notebook, bg='#303841')
-        self.chamber_frame = tk.Frame(self.notebook, bg='#303841')
-        self.pdu_frame = tk.Frame(self.notebook, bg='#303841')
-        self.nustream_frame = tk.Frame(self.notebook, bg='#303841')
-
-        self.notebook.add(self.summary_frame, text='Summary')
-        self.notebook.add(self.chamber_frame, text='Chamber')
-        self.notebook.add(self.pdu_frame, text='PDU')
-        self.notebook.add(self.nustream_frame, text='NuStream')
-
-
-        self.chamber_form = ChamberForm(self.chamber_frame)
-        self.chamber_form.pack(expand=True, fill='both')
-        self.summary_form = SummaryForm(self.summary_frame)
-        self.summary_form.pack(expand=True, fill='both')
     def debug_mode(self):
         self.debug_window = DbgWindowForm(self.chamber_ctrl.flag_connect)
 
     def about(self):
         messagebox.showinfo(f"About {PROGRAM_NAME}", f"{PROGRAM_NAME} V{CODE_VERSION} \n {BUILD_DATE}")
-
-    def update_Window_status(self):
-        current_time = time.strftime("%Y-%m-%d %H:%M:%S")
-        self.lbl_pc_time.config(text=f" {current_time}")
-        self.after(1000, self.update_Window_status)
 
 if __name__ == "__main__":
     app = WindowForm()
