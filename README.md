@@ -4,7 +4,7 @@ Simple app to control ESPEC ARL-1100.
 
 ## References
 [ESPEC]
-[pyESPEC from Github:jmbattle/pyESPEC]
+[ESPEC]: https://www.espec.co.jp/english/products/catalog/ar02.pdf
 
-[ESPEC]: http://www.espec.co.jp/english/products/env-test/sh/
-[pyESPEC]: https://github.com/jmbattle/pyESPEC
+[pyESPEC - Jason Battle]
+[pyESPEC - Jason Battle]: https://github.com/jmbattle/pyESPEC
