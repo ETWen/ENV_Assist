@@ -258,6 +258,16 @@ class ChamberCmd(object):
 		print(cmd)
 		return
 
+	def SetConstTempRun(self,const_temp):
+		cmd = (f"TEMP, S{const_temp}")
+		print(cmd)
+		return
+
+	def SetConstHumiRun(self,const_humi):
+		cmd = (f"HUMI, S{const_humi}")
+		print(cmd)
+		return
+
 	def Read_Chamber_Temp(self):
 		temp = self.myQuery("TEMP?")
 		temp_parts = temp.split(',')

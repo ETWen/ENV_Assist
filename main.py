@@ -102,38 +102,70 @@ class ChamberCtrl:
         return self.flag_connect
 
     def chamber_load_prgm(self, prg_num):
-        if self.flag_connect:
-            if prg_num.isdigit():
-                prg_num = int(prg_num)
-                if 1 <= prg_num <= 40:
-                    prgm_data_parts, prgm_stp_lst = self.chamber.GetProgInfo(prg_num)
-                    if prgm_data_parts != "NA:DATA NOT READY":
-                        self.chamber.PlotProgProfile(prg_num, prgm_data_parts[1], prgm_stp_lst)
-                        return True
-                    else:
-                        return "Chamber PRGM:{} not setting.".format(prg_num)
-                else:
-                    return "Program number should be between 1 and 30."
-            else:
-                return "Invalid program number. Please enter a numeric value."
-        return "Not connected"
+        if not self.flag_connect:
+            return "Not connected"
+        if not prg_num.isdigit():
+            return "Invalid program number. Please enter a numeric value."
+        prg_num = int(prg_num)
+        if not (1 <= prg_num <= 40):
+            return "Program number should be between 1 and 40."
+        prgm_data_parts, prgm_stp_lst = self.chamber.GetProgInfo(prg_num)
+        if prgm_data_parts == "NA:DATA NOT READY":
+            return f"Chamber PRGM:{prg_num} not setting."
+        self.chamber.PlotProgProfile(prg_num, prgm_data_parts[1], prgm_stp_lst)
+        return True
 
     def chamber_prgm_run(self, prg_num):
+        if not self.flag_connect:
+            return "Not connected"
+        if not prg_num.isdigit():
+            return "Invalid program number. Please enter a numeric value."
+        prg_num = int(prg_num)
+        if not (1 <= prg_num <= 40):
+            return "Program number should be between 1 and 40."
+        response = self.chamber.SetProgRun(prg_num)
+        if response == "NA:DATA NOT READY":
+            return f"Chamber PRGM:{prg_num} not setting."
+        return True
+
+    def chamber_constant_run(self, const_temp, const_humi):
+        if not self.flag_connect:
+            return "Not connected"
+        if not const_temp.isdigit() or (const_humi and not const_humi.isdigit()):
+            return "Invalid temperature or humidity. Please enter numeric values."
+        const_temp = int(const_temp)
+        const_humi = int(const_humi) if const_humi else None
+        if not (-45 <= const_temp <= 100):
+            return "Temp should be -45 - 100C"
+        if const_humi is None:
+            print("Temp")
+            self.chamber.SetConstTempRun(const_temp)
+            return True
+        if 0 <= const_humi <= 100:
+            print("Temp + Humi")
+            self.chamber.SetConstTempRun(const_temp)
+            self.chamber.SetConstHumiRun(const_humi)
+            return True
+        return "Humi should be 0% - 100%"
+
+    def chamber_operate_poweroff(self):
         if self.flag_connect:
-            if prg_num.isdigit():
-                prg_num = int(prg_num)
-                if 1 <= prg_num <= 40:
-                    prgm_data_parts, prgm_stp_lst = self.chamber.SetProgRun(prg_num)
-                    if prgm_data_parts != "NA:DATA NOT READY":
-                        self.chamber.SetProgRun(prg_num)
-                        return True
-                    else:
-                        return "Chamber PRGM:{} not setting.".format(prg_num)
-                else:
-                    return "Program number should be between 1 and 30."
-            else:
-                return "Invalid program number. Please enter a numeric value."
-        return "Not connected"
+            return True
+        else:
+             return "Not connected"
+
+    def chamber_operate_standby(self):
+        if self.flag_connect:
+            return True
+        else:
+             return "Not connected"
+
+    def chamber_operate_poweron(self):
+        if self.flag_connect:
+            return True
+        else:
+             return "Not connected"
+
 
 class ChamberForm(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
@@ -165,9 +197,9 @@ class ChamberForm(tk.Frame):
         self.frame_chamber_connect = tk.Frame(self, bg='#303841')
         self.frame_chamber_connect.pack(side=tk.TOP, fill=tk.BOTH)
 
-        self.canvas_indicator = tk.Canvas(self.frame_chamber_connect, width=20, height=20, bg='#303841', highlightthickness=0)
-        self.canvas_indicator.pack(side=tk.LEFT, padx=5, pady=5)
-        self.indicator = self.canvas_indicator.create_oval(2, 2, 18, 18, fill="red")
+        self.chb_conn_indicator = tk.Canvas(self.frame_chamber_connect, width=20, height=20, bg='#303841', highlightthickness=0)
+        self.chb_conn_indicator.pack(side=tk.LEFT, padx=5, pady=5)
+        self.indicator = self.chb_conn_indicator.create_oval(2, 2, 18, 18, fill="red")
 
         self.lbl_chb_connect = tk.Label(self.frame_chamber_connect, text="Chamber Connection:", bg='#303841', fg='white')
         self.lbl_chb_connect.pack(side=tk.LEFT, padx=3, pady=3)
@@ -221,11 +253,12 @@ class ChamberForm(tk.Frame):
         self.lbl_const_temp.pack(side=tk.LEFT, padx=3, pady=3, fill='x')
         self.entry_const_temp = tk.Entry(self.frame_chb_const_title, width=4)
         self.entry_const_temp.pack(side=tk.LEFT, padx=3, pady=3)
+        self.entry_const_temp.insert(tk.END, "25")
         self.lbl_const_humi = tk.Label(self.frame_chb_const_title, text="HUMI :", bg='#303841', fg='white', anchor='w', font=("Arial", 10))
         self.lbl_const_humi.pack(side=tk.LEFT, padx=3, pady=3, fill='x')
         self.entry_const_humi = tk.Entry(self.frame_chb_const_title, width=4)
         self.entry_const_humi.pack(side=tk.LEFT, padx=3, pady=3)
-        self.btn_const_mode = tk.Button(self.frame_chb_const_title, text="MODE:CONSTANT", command=None, width=30)
+        self.btn_const_mode = tk.Button(self.frame_chb_const_title, text="MODE:CONSTANT", command=self.chamber_constant_run, width=30)
         self.btn_const_mode.pack(side=tk.LEFT, padx=3, pady=3, expand=True)
 
     def create_operation_frames(self):
@@ -236,13 +269,13 @@ class ChamberForm(tk.Frame):
         self.lbl_chb_const_title.pack(side=tk.TOP, padx=3, pady=15, fill='x', expand=True)
 
         # Create a grid layout for the buttons
-        self.btn_poweron = tk.Button(self.frame_chb_opreate, text="Power On", command=None, width=15, height=2, bg='#00FF00')
+        self.btn_poweron = tk.Button(self.frame_chb_opreate, text="Power On", command=self.chamber_oprate_poweron, width=15, height=2, bg='#00FF00')
         self.btn_poweron.pack(side=tk.LEFT, padx=15)
 
-        self.btn_mode_stby = tk.Button(self.frame_chb_opreate, text="Mode:Standby", command=None, width=15, height=2, bg='#FFEB99')
+        self.btn_mode_stby = tk.Button(self.frame_chb_opreate, text="Mode:Standby", command=self.chamber_oprate_stanndby, width=15, height=2, bg='#FFEB99')
         self.btn_mode_stby.pack(side=tk.LEFT, padx=15)
 
-        self.btn_poweroff = tk.Button(self.frame_chb_opreate, text="Power Off", command=None, width=15, height=2, bg='#FF0000', font = ("Arial", 9, "bold"))
+        self.btn_poweroff = tk.Button(self.frame_chb_opreate, text="Power Off", command=self.chamber_oprate_poweroff, width=15, height=2, bg='#FF0000', font = ("Arial", 9, "bold"))
         self.btn_poweroff.pack(side=tk.LEFT, padx=15)
 
     def create_frame_title(self, text, font_size):
@@ -273,13 +306,14 @@ class ChamberForm(tk.Frame):
     def check_chamber(self):
         try:
             return self.chamber_ctrl.chamber.CheckConnection()
+            #return True        #Dbg use
         except Exception as e:
             print(f"An error occurred while checking chamber connection: {e}")
             return False
 
     def update_indicator(self, status):
         color = "green" if status else "red"
-        self.canvas_indicator.itemconfig(self.indicator, fill=color)
+        self.chb_conn_indicator.itemconfig(self.indicator, fill=color)
 
     def update_status(self):
         if not self.chamber_ctrl.flag_connect or self.flag_dbg_mode:
@@ -287,7 +321,7 @@ class ChamberForm(tk.Frame):
             return
 
         try:
-            if not self.check_chamber():
+            if not self.check_chamber():    #self.check_chamber()
                 self.update_indicator(False)
                 print("Chamber is disconnected. Updating flag and UI.")
                 self.chamber_ctrl.flag_connect = False
@@ -334,26 +368,61 @@ class ChamberForm(tk.Frame):
         if result is not True:
             messagebox.showwarning("Program Pause Error", result)
 
-    #def get_canvas_indicator(self):
-            #return self.canvas_indicator
+    def chamber_constant_run(self):
+        const_temp = self.entry_const_temp.get()
+        const_humi = self.entry_const_humi.get()
+        result = self.chamber_ctrl.chamber_constant_run(const_temp,const_humi)
+        if result is not True:
+            messagebox.showwarning("Chamber Constant Setting Error", result)
 
+    def chamber_oprate_poweron(self):
+        result = self.chamber_ctrl.chamber_operate_poweron()
+        if result is not True:
+            messagebox.showwarning("Chamber Operate Error", result)
+
+    def chamber_oprate_stanndby(self):
+        result = self.chamber_ctrl.chamber_operate_standby()
+        if result is not True:
+            messagebox.showwarning("Chamber Operate Error", result)
+
+    def chamber_oprate_poweroff(self):
+        result = self.chamber_ctrl.chamber_operate_poweroff()
+        if result is not True:
+            messagebox.showwarning("Chamber Operate Error", result)
+
+    def get_chb_conn_indicator(self):
+        #print(self.chb_conn_indicator.itemcget(self.indicator, "fill"))
+        if self.chb_conn_indicator.itemcget(self.indicator, "fill") == "green":
+            status = True
+        else:
+            status = False
+        return status
 
 class SummaryForm(tk.Frame):
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent, chb_conn_st, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
+        self.chb_conn_st = chb_conn_st
         self.create_dev_connection_frame()
 
     def create_dev_connection_frame(self):
         self.frame_summary_connect = tk.Frame(self, bg='#303841')
         self.frame_summary_connect.pack(side=tk.TOP, fill=tk.BOTH)
 
+        self.chb_conn_indicator = tk.Canvas(self.frame_summary_connect, width=20, height=20, bg='#303841', highlightthickness=0)
+        self.chb_conn_indicator.pack(side=tk.LEFT, padx=5, pady=5)
+        self.indicator = self.chb_conn_indicator.create_oval(2, 2, 18, 18, fill="red")
         self.lbl_summary_connect = tk.Label(self.frame_summary_connect, text="Chamber", bg='#303841', fg='white')
         self.lbl_summary_connect.pack(side=tk.LEFT, padx=3, pady=3)
 
+    def update_indicator(self, status):
+        color = "green" if status else "red"
+        #print(f"test {status}")
+        self.chb_conn_indicator.itemconfig(self.indicator, fill=color)
 
 class WindowForm(tk.Tk):
     def __init__(self):
         super().__init__()
+        self.chb_conn_st = False
         self.init_config()
         self.init_variables() 
         self.init_window()
@@ -440,7 +509,7 @@ class WindowForm(tk.Tk):
 
         self.chamber_form = ChamberForm(self.chamber_frame)
         self.chamber_form.pack(expand=True, fill='both')
-        self.summary_form = SummaryForm(self.summary_frame)
+        self.summary_form = SummaryForm(self.summary_frame, self.chb_conn_st)
         self.summary_form.pack(expand=True, fill='both')
     def debug_mode(self):
         self.debug_window = DbgWindowForm(self.chamber_ctrl.flag_connect)
@@ -451,6 +520,8 @@ class WindowForm(tk.Tk):
     def update_Window_status(self):
         current_time = time.strftime("%Y-%m-%d %H:%M:%S")
         self.lbl_pc_time.config(text=f" {current_time}")
+        self.chb_conn_st = self.chamber_form.get_chb_conn_indicator()
+        self.summary_form.update_indicator(self.chb_conn_st)
         self.after(1000, self.update_Window_status)
 
 if __name__ == "__main__":
