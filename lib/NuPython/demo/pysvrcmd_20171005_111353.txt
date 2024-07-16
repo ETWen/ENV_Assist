@@ -1,3 +1,0 @@
-(13:17:27)(Send)(Socket1) Close connection
-(13:17:27)(Error)(Socket1) Close socket1 error.
-(13:17:27)(Send)(Socket2) Close connection

@@ -54,9 +54,9 @@ class ChamberCmd(object):
 				self.my_inst.write(command)
 				#print(f"Sent command: {command}")
 			else:
-				print("Error: Instrument connection not established.")
+				print("[Chamber_Util.py] Error: Instrument connection not established.")
 		except pyvisa.errors.VisaIOError as e:
-			print(f"Error writing command: {e}")
+			print(f"[Chamber_Util.py] Error writing command: {e}")
 
 	def read_until_terminator(self, terminator='\r\n'):
 		try:

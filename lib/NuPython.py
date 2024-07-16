@@ -24,9 +24,22 @@
 import socket
 import struct
 import sys
-import nucommand
-import nuconst
-import nupktstorage
+import os
+
+# Used for GUI main.py
+from lib import nucommand as nucommand
+from lib import nuconst as nuconst
+from lib import nupktstorage as nupktstorage
+
+
+# Dbg used for NuStream_Util.py
+#import nucommand
+#import nuconst
+#import nupktstorage
+
+
+
+
 ns_const = nuconst.NuStreamsConst()
 ns_pktdb = nupktstorage.NuStreamsPacketStorage()
 python_ver = 2
@@ -300,7 +313,15 @@ class T451InfoChassis:
 
 class LogFileWriter:
     def __init__(self):
-        self.log_file = open("pysvrcmd_%s.txt" %(time.strftime("%Y%m%d_%H%M%S", time.localtime())), "w")
+        # Create the log/Dbg_NuStream
+        log_dir = os.path.join(os.getcwd(), "log", "Dbg_NuStream")
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+        # Create the log
+        log_file_path = os.path.join(log_dir, "pysvrcmd_%s.txt" % (time.strftime("%Y%m%d_%H%M%S", time.localtime())))
+        self.log_file = open(log_file_path, "w")
+
+        #self.log_file = open("pysvrcmd_%s.txt" %(time.strftime("%Y%m%d_%H%M%S", time.localtime())), "w")
     def is_closed(self):
         if self.log_file.closed == False:
             return 0
