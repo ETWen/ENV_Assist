@@ -41,6 +41,7 @@ class ChamberFrame(tk.Frame):
         self.create_connection_frame()
         self.create_monitor_frames()
         self.create_program_frames()
+        self.create_chamber_ctrl_frames()
         self.create_constant_frames()
         self.create_operation_frames()
 
@@ -65,6 +66,9 @@ class ChamberFrame(tk.Frame):
         self.btn_chb_connect.pack(side=tk.LEFT, padx=10, pady=10)
         #self.btn_chb_disconnect = tk.Button(self.frame_chamber_connect, text="Disconnect", command=self.chamber_ctrl.disconnect_chamber)
         #self.btn_chb_disconnect.pack(side=tk.LEFT, padx=10, pady=10)
+
+    def get_indicator_status(self):
+        return self.chb_conn_indicator.itemcget(self.indicator, "fill")
 
     def create_monitor_frames(self):
         self.frame_chamber_title = self.create_frame_title("Chamber Status", 16)
@@ -91,47 +95,51 @@ class ChamberFrame(tk.Frame):
         self.lbl_chb_prg3 = tk.Label(self.frame_chamber_status, text=f"Temp: -- / -- \t\t Humi: -- / --", bg='#303841', fg='white', anchor='w')
         self.lbl_chb_prg3.pack(side=tk.TOP, padx=3, pady=3, fill='x')
 
+    def create_chamber_ctrl_frames(self):
+        self.frame_chamber_ctrl = tk.Frame(self, bg='#303841')
+        self.frame_chamber_ctrl.pack(side=tk.TOP, fill=tk.BOTH)
+        self.lbl_chamber_ctrl_title = tk.Label(self.frame_chamber_ctrl, text="Chamber Ctrl", bg='#303841', fg='white', font=("Arial", 16), anchor='w')
+        self.lbl_chamber_ctrl_title.pack(side=tk.TOP, padx=3, pady=3, fill='x')
+        self.lbl_prg_load_title = tk.Label(self.frame_chamber_ctrl, text="Program Load", bg='#303841', fg='white', font=("Arial", 10), anchor='w')
+        self.lbl_prg_load_title.pack(side=tk.TOP, padx=3, pady=3, fill='x')
 
-        self.frame_prgload_title = self.create_frame_title("Program Load\t              CONSTANT MODE", 16)
+        self.frame_prg_ctrl = tk.Frame(self.frame_chamber_ctrl, bg='#303841')
+        self.frame_prg_ctrl.pack(side=tk.TOP, fill=tk.BOTH)
 
-        self.frame_prgload = tk.Frame(self, bg='#303841')
-        self.frame_prgload.pack(side=tk.LEFT, fill='y')
-        self.frame_prgload_entry = tk.Frame(self.frame_prgload, bg='#303841')
-        self.frame_prgload_entry.pack(side=tk.TOP, fill='x')
-
-        self.lbl_prgload = tk.Label(self.frame_prgload_entry, text="PRGM No.", bg='#303841', fg='white', font=("Arial", 10))
-        self.lbl_prgload.pack(side=tk.LEFT, padx=3, pady=3)
-        self.entry_prgload_num = tk.Entry(self.frame_prgload_entry, width=3)
-        self.entry_prgload_num.pack(side=tk.LEFT, padx=3, pady=3)
-        self.btn_prgload = tk.Button(self.frame_prgload_entry, text="Load", command=self.update_chamber_loadprgm)
-        self.btn_prgload.pack(side=tk.LEFT, padx=3, pady=3)
-
-        self.btn_prgrun = tk.Button(self.frame_prgload, text="PRGM RUN", command=self.update_chamber_runprgm, width=15, height=2)
-        self.btn_prgrun.pack(side=tk.TOP, padx=5, pady=5)
-        self.btn_prgpause = tk.Button(self.frame_prgload, text="PRGM Pause", command=self.update_chamber_pauseprgm, width=15, height=2)
-        self.btn_prgpause.pack(side=tk.TOP, padx=5, pady=5)
+        self.lbl_prgload = tk.Label(self.frame_prg_ctrl, text="PRGM No.", bg='#303841', fg='white', font=("Arial", 10))
+        self.lbl_prgload.pack(side=tk.LEFT, padx=10, pady=3)
+        self.entry_prgload_num = tk.Entry(self.frame_prg_ctrl, width=3)
+        self.entry_prgload_num.pack(side=tk.LEFT, padx=1, pady=3)
+        self.btn_prgload = tk.Button(self.frame_prg_ctrl, text="Load", command=self.update_chamber_loadprgm)
+        self.btn_prgload.pack(side=tk.LEFT, padx=10, pady=3)
+        self.btn_prgrun = tk.Button(self.frame_prg_ctrl, text="PRGM RUN", command=self.update_chamber_runprgm, width=15, height=2)
+        self.btn_prgrun.pack(side=tk.LEFT, padx=10, pady=5)
+        self.btn_prgpause = tk.Button(self.frame_prg_ctrl, text="PRGM Pause", command=self.update_chamber_pauseprgm, width=15, height=2)
+        self.btn_prgpause.pack(side=tk.LEFT, padx=10, pady=5)
 
     def create_constant_frames(self):
-        self.frame_chb_const_title = tk.Frame(self, bg='#303841')
-        self.frame_chb_const_title.pack(fill='x')
+        self.lbl_const_title = tk.Label(self.frame_chamber_ctrl, text="CONSTANT Control", bg='#303841', fg='white', font=("Arial", 10), anchor='w')
+        self.lbl_const_title.pack(side=tk.TOP, padx=3, pady=3, fill='x')
 
-        self.lbl_const_temp = tk.Label(self.frame_chb_const_title, text="  TEMP :", bg='#303841', fg='white', anchor='w', font=("Arial", 10))
+        self.frame_const_ctrl = tk.Frame(self.frame_chamber_ctrl, bg='#303841')
+        self.frame_const_ctrl.pack(side=tk.TOP, fill=tk.BOTH)
+        self.lbl_const_temp = tk.Label(self.frame_const_ctrl, text="  TEMP :", bg='#303841', fg='white', anchor='w', font=("Arial", 10))
         self.lbl_const_temp.pack(side=tk.LEFT, padx=3, pady=3, fill='x')
-        self.entry_const_temp = tk.Entry(self.frame_chb_const_title, width=4)
+        self.entry_const_temp = tk.Entry(self.frame_const_ctrl, width=4)
         self.entry_const_temp.pack(side=tk.LEFT, padx=3, pady=3)
         self.entry_const_temp.insert(tk.END, "25")
-        self.lbl_const_humi = tk.Label(self.frame_chb_const_title, text="HUMI :", bg='#303841', fg='white', anchor='w', font=("Arial", 10))
+        self.lbl_const_humi = tk.Label(self.frame_const_ctrl, text="HUMI :", bg='#303841', fg='white', anchor='w', font=("Arial", 10))
         self.lbl_const_humi.pack(side=tk.LEFT, padx=3, pady=3, fill='x')
-        self.entry_const_humi = tk.Entry(self.frame_chb_const_title, width=4)
+        self.entry_const_humi = tk.Entry(self.frame_const_ctrl, width=4)
         self.entry_const_humi.pack(side=tk.LEFT, padx=3, pady=3)
-        self.btn_const_mode = tk.Button(self.frame_chb_const_title, text="MODE:CONSTANT", command=self.update_chamber_runconst, width=30)
-        self.btn_const_mode.pack(side=tk.LEFT, padx=3, pady=3, expand=True)
+        self.btn_const_mode = tk.Button(self.frame_const_ctrl, text="MODE:CONSTANT", command=self.update_chamber_runconst, width=30)
+        self.btn_const_mode.pack(side=tk.LEFT, padx=3, pady=3)
 
     def create_operation_frames(self):
-        self.frame_chb_opreate = tk.Frame(self, bg='#303841')
+        self.frame_chb_opreate = tk.Frame(self.frame_chamber_ctrl, bg='#303841')
         self.frame_chb_opreate.pack(side=tk.TOP, fill='x', ipadx=100)
 
-        self.lbl_chb_const_title = tk.Label(self.frame_chb_opreate, text="Chamber OPERATE", bg='#303841', fg='white', anchor='center', font=("Arial", 16))
+        self.lbl_chb_const_title = tk.Label(self.frame_chb_opreate, text="Chamber OPERATE", bg='#303841', fg='white', anchor='w', font=("Arial", 10))
         self.lbl_chb_const_title.pack(side=tk.TOP, padx=3, pady=15, fill='x', expand=True)
 
         # Create a grid layout for the buttons
@@ -318,9 +326,10 @@ class ChamberCtrl:
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Main Window")
-    root.geometry("600x520")
+    root.geometry("600x620")
     root.configure(background='#303841')
-    root.resizable(False, False)
+    #root.resizable(False, False)
+    #root.state('zoomed')
 
     create_notebook(root)
 

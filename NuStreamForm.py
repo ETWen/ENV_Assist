@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 
 from lib.NuStream_Util import NustreamCmd as NsCmd
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageGrab
 
 import datetime
 
@@ -50,6 +50,10 @@ class NuStreamFrame(tk.Frame):
         self.locked_items = []
         self.locked_ports_cbp_id = []
         self.locked_ports_idx = []
+        self.flag_traffic_start = False
+        self.show_traffic_start_time = None
+        self.show_traffic_end_time = None
+        self.show_traffic_diff_time = None
         self.init_frame()
         self.load_resource()
         self.create_connection_frame()
@@ -103,6 +107,9 @@ class NuStreamFrame(tk.Frame):
         self.btn_nustm_connect = tk.Button(self.frame_nustm_connect, text="Connect", command=self.update_nustm_ip)
         self.btn_nustm_connect.pack(side=tk.LEFT, padx=10, pady=10)
 
+    def get_indicator_status(self):
+        return self.nustm_conn_indicator.itemcget(self.indicator, "fill")
+
     def create_btn_ctrl_frame(self):
         self.frame_nustm_btn_ctrl = tk.Frame(self, bg='#303841')
         self.frame_nustm_btn_ctrl.pack(side=tk.TOP, fill=tk.BOTH)
@@ -115,24 +122,40 @@ class NuStreamFrame(tk.Frame):
         self.btn_nustm_stop.config(state=tk.DISABLED)
         self.btn_nustm_start = tk.Button(self.frame_nustm_btn_ctrl, image=self.img_start_btn, command=self.update_nustm_start)
         self.btn_nustm_start.pack(side=tk.LEFT, padx=10, pady=10)
-        self.btn_nustm_pause = tk.Button(self.frame_nustm_btn_ctrl, image=self.img_pause_btn, command=self.update_nustm_pause)
-        self.btn_nustm_pause.pack(side=tk.LEFT, padx=10, pady=10)
-        self.btn_nustm_pause.config(state=tk.DISABLED)
+        #self.btn_nustm_pause = tk.Button(self.frame_nustm_btn_ctrl, image=self.img_pause_btn, command=self.update_nustm_pause)
+        #self.btn_nustm_pause.pack(side=tk.LEFT, padx=10, pady=10)
+        #self.btn_nustm_pause.config(state=tk.DISABLED)
         self.btn_nustm_capture = tk.Button(self.frame_nustm_btn_ctrl, image=self.img_capture_btn, command=self.nustm_capture)
         self.btn_nustm_capture.pack(side=tk.LEFT, padx=10, pady=10)
 
     def create_show_lock_ports(self):
         self.frame_nustm_show_ports_title = tk.Frame(self, bg='#303841')
         self.frame_nustm_show_ports_title.pack(side=tk.TOP, fill=tk.BOTH)
-        self.lbl_show_ports_title = tk.Label(self.frame_nustm_show_ports_title, text="Reserve/Lock Ports", bg='#303841', fg='white', font=("Arial", 16))
-        self.lbl_show_ports_title.pack(side=tk.LEFT, padx=3, pady=3)
-        self.frame_nustm_show_ports = tk.Frame(self, bg='#303841')
+        self.lbl_show_ports_title = tk.Label(self.frame_nustm_show_ports_title, text="Reserve/Lock Ports Status", bg='#303841', fg='white', font=("Arial", 16), anchor='w')
+        self.lbl_show_ports_title.pack(side=tk.TOP, padx=3, pady=3, fill='x')
+        self.lbl_show_ports_title2 = tk.Label(self.frame_nustm_show_ports_title, text="Port name\t\tSpeed\t\tDuplex\t\tSpeed Mode", bg='#303841', fg='white', font=("Arial", 10), anchor='w')
+        self.lbl_show_ports_title2.pack(side=tk.TOP, padx=3, pady=3, fill='x')
+
+        self.frame_nustm_show_ports = tk.Frame(self, bg='#303841', bd=2, relief=tk.RAISED)
         self.frame_nustm_show_ports.pack(side=tk.TOP, fill=tk.BOTH)
-        
-        self.lbl_test = ["NA","NA","NA","NA"]
-        for show_port_idx in (self.lbl_test):
-            self.lbl_show_port = tk.Label(self.frame_nustm_show_ports, text=show_port_idx, bg='#303841', fg='white', anchor='w')
+        self.lbl_show_ports = []
+        for _ in range(4):
+            self.lbl_show_port = tk.Label(self.frame_nustm_show_ports, text="NA", bg='#303841', fg='white', anchor='w')
             self.lbl_show_port.pack(side=tk.TOP, padx=3, pady=3, fill='x')
+            self.lbl_show_ports.append(self.lbl_show_port)
+
+        self.frame_nustm_time_title = tk.Frame(self, bg='#303841')
+        self.frame_nustm_time_title.pack(side=tk.TOP, fill=tk.BOTH)
+        self.lbl_show_time_title = tk.Label(self.frame_nustm_time_title, text="Traffic Times", bg='#303841', fg='white', font=("Arial", 10), anchor='w')
+        self.lbl_show_time_title.pack(side=tk.TOP, padx=3, pady=3, fill='x')
+        self.frame_nustm_time = tk.Frame(self, bg='#303841', bd=2, relief=tk.RAISED)
+        self.frame_nustm_time.pack(side=tk.TOP, fill=tk.BOTH)
+        self.lbl_show_start_time = tk.Label(self.frame_nustm_time, text="Start Time:", bg='#303841', fg='white', font=("Arial", 10), anchor='w')
+        self.lbl_show_start_time.pack(side=tk.TOP, padx=3, pady=3, fill='x')
+        self.lbl_show_end_time = tk.Label(self.frame_nustm_time, text="End Time:", bg='#303841', fg='white', font=("Arial", 10), anchor='w')
+        self.lbl_show_end_time.pack(side=tk.TOP, padx=3, pady=3, fill='x')
+        self.lbl_show_diff_time = tk.Label(self.frame_nustm_time, text="Diff Time:", bg='#303841', fg='white', font=("Arial", 10), anchor='w')
+        self.lbl_show_diff_time.pack(side=tk.TOP, padx=3, pady=3, fill='x')
 
     def update_connect_status(self):
         self.nustm_ctrl.nustm_flag = self.nustm_ctrl.check_nustm()
@@ -149,10 +172,31 @@ class NuStreamFrame(tk.Frame):
 
     def update_status(self):
         if self.nustm_ctrl.nustm_flag:
-            print("Nu Connect")
-            print(self.locked_items)
-        else:
-            print("Nu Not Connect")
+            for idx, lock_port_idx in enumerate(self.locked_items):
+                port_media_info = self.nustm_ctrl.nustm_cmd.GetPortMediaInfo(self.locked_ports_idx[idx])
+                formatted_info = "\t\t".join(port_media_info).replace("[", "").replace("]", "").replace("'", "")
+                display_text = f"{lock_port_idx}\t\t{formatted_info}"
+                self.lbl_show_ports[idx].config(text=display_text)
+
+            if self.show_traffic_start_time:
+                start_time_str = self.show_traffic_start_time.strftime('%Y-%m-%d %H:%M:%S')
+                self.lbl_show_start_time.config(text=f"Start Time: {start_time_str}")
+
+                self.show_traffic_end_time = datetime.datetime.now()
+                
+                if self.show_traffic_end_time:
+                    end_time_str = self.show_traffic_end_time.strftime('%Y-%m-%d %H:%M:%S')
+                    
+                    if self.flag_traffic_start:
+                        self.lbl_show_end_time.config(text=f"End Time: {end_time_str}")
+                        if self.show_traffic_start_time and self.show_traffic_end_time:
+                            time_diff = self.show_traffic_end_time - self.show_traffic_start_time
+                            hours, remainder = divmod(time_diff.total_seconds(), 3600)
+                            minutes, seconds = divmod(remainder, 60)
+                            diff_str = f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}"
+                            self.lbl_show_diff_time.config(text=f"Diff Time: {diff_str}")
+        #else:
+        #    print("NuStream Not Connect")
 
     def update_nustm_ip(self):
         new_nustm_ip = self.entry_nustm_connect.get()
@@ -169,20 +213,23 @@ class NuStreamFrame(tk.Frame):
 
     def update_nustm_start(self):
         if self.locked_ports_idx:
+            self.flag_traffic_start =True
             self.nustm_ctrl.nustream_ports_config(self.locked_items, self.locked_ports_cbp_id, self.locked_ports_idx)
             self.nustm_ctrl.nustream_traffic_start()
             self.btn_nustm_stop.config(state=tk.NORMAL)
             self.btn_nustm_start.config(state=tk.DISABLED)
-            self.btn_nustm_pause.config(state=tk.NORMAL)
+            #self.btn_nustm_pause.config(state=tk.NORMAL)
+            self.show_traffic_start_time = datetime.datetime.now()
         else:
             messagebox.showwarning("NuStream Ports Error", "Not Reserve/Lock Ports")
 
     def update_nustm_stop(self):
         if self.locked_ports_idx:
+            self.flag_traffic_start =False
             self.nustm_ctrl.nustream_traffic_stop()
             self.btn_nustm_stop.config(state=tk.DISABLED)
             self.btn_nustm_start.config(state=tk.NORMAL)
-            self.btn_nustm_pause.config(state=tk.DISABLED)
+            #self.btn_nustm_pause.config(state=tk.DISABLED)
         else:
             messagebox.showwarning("NuStream Ports Error", "Not Reserve/Lock Ports")
 
@@ -191,13 +238,19 @@ class NuStreamFrame(tk.Frame):
             self.nustm_ctrl.nustream_traffic_stop()
             self.btn_nustm_stop.config(state=tk.DISABLED)
             self.btn_nustm_start.config(state=tk.NORMAL)
-            self.btn_nustm_pause.config(state=tk.DISABLED)
+            #self.btn_nustm_pause.config(state=tk.DISABLED)
         else:
             messagebox.showwarning("NuStream Ports Error", "Not Reserve/Lock Ports")
 
     def update_nustm_clear(self):
         if self.locked_ports_idx:
             self.nustm_ctrl.nustream_traffic_clear(self.locked_ports_idx)
+            self.lbl_show_start_time.config(text=f"Start Time: ")
+            self.lbl_show_end_time.config(text=f"End Time: ")
+            self.lbl_show_diff_time.config(text=f"Diff Time: ")
+            self.show_traffic_start_time = None
+            self.show_traffic_end_time = None
+            self.show_traffic_diff_time = None
         else:
             messagebox.showwarning("NuStream Ports Error", "Not Reserve/Lock Ports")
 
@@ -251,9 +304,6 @@ class NuStreamFrame(tk.Frame):
         self.locked_items = locked_items
         self.locked_ports_cbp_id = locked_ports_cbp_id
         self.locked_ports_idx = locked_ports_idx
-        for lock_port_idx in (self.locked_items):
-            self.lbl_show_port = tk.Label(self.frame_nustm_show_ports, text=lock_port_idx, bg='#303841', fg='white', anchor='w')
-            self.lbl_show_port.pack(side=tk.TOP, padx=3, pady=3, fill='x')
 
 
 class NuStreamCtrl:
@@ -309,8 +359,11 @@ class NuStreamCtrl:
             cid, bid, pid = element
             self.nustm_cmd.SetLockPort(cid, bid, pid)
 
+        # Show Port Status
+        '''
         for _, element in enumerate(self.locked_ports_idx):
             print(self.nustm_cmd.GetPortMediaInfo(element))
+        '''
 
         self.nustm_cmd.SetTxTimeConfig(7776000)
         self.nustm_cmd.nscmd.config_tx_isimmediate(0)
