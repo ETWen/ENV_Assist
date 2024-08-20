@@ -13,15 +13,16 @@ import NuStreamForm as NustmForm
 import PDUForm as PduForm
 
 PROGRAM_NAME = "ENV Assist"
-CODE_VERSION = "1.0.1"
+CODE_VERSION = "1.0.2"
 PYTHON_VERSION = "3.12"
 BUILD_DATE = "2024-06-20"
 
 class SummaryFrame(tk.Frame):
-    def __init__(self, master=None,chamber_frame=None,nustream_frame=None, *args, **kwargs):
+    def __init__(self, master=None,chamber_frame=None,nustream_frame=None,pdu_frame=None, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
         self.chamber_frame = chamber_frame
         self.nustream_frame = nustream_frame
+        self.pdu_frame = pdu_frame
         self.init_frame()
         self.create_connection_frame()
 
@@ -64,6 +65,9 @@ class SummaryFrame(tk.Frame):
         if self.nustream_frame:
             nustream_status = self.nustream_frame.get_indicator_status()
             self.dev_nustm_indicator.itemconfig(self.indicator_nustm, fill=nustream_status)
+        if self.pdu_frame:
+            pdu_status = self.pdu_frame.get_indicator_status()
+            self.dev_pdu_indicator.itemconfig(self.indicator_pdu, fill=pdu_status)
 
 class CombinedStatusUpdater:
     def __init__(self, window_form , summary_frame, chamber_frame,nustream_frame,pdu_frame):
@@ -87,6 +91,10 @@ class CombinedStatusUpdater:
         self.nustream_update_thread.daemon = True
         self.nustream_update_thread.start()
 
+        self.pdu_update_thread = threading.Thread(target=self.update_pdu_connect_status)
+        self.pdu_update_thread.daemon = True
+        self.pdu_update_thread.start()
+
         self.nustream_sum_conn_thread = threading.Thread(target=self.update_sum_conn_status)
         self.nustream_sum_conn_thread.daemon = True
         self.nustream_sum_conn_thread.start()
@@ -106,6 +114,11 @@ class CombinedStatusUpdater:
     def update_nustream_status(self):
         while self.keep_running:
             self.nustream_frame.update_status()
+            time.sleep(1)
+
+    def update_pdu_connect_status(self):
+        while self.keep_running:
+            self.pdu_frame.update_connect_status()
             time.sleep(1)
 
     def update_sum_conn_status(self):
@@ -211,7 +224,7 @@ class WindowForm(tk.Tk):
         self.pdu_frame = PduForm.PduFrame(self.nb_pdu, self.pdu_ip)
         self.pdu_frame.pack(expand=True, fill='both')
 
-        self.summary_frame = SummaryFrame(self.nb_summary,chamber_frame=self.chamber_frame ,nustream_frame=self.nustream_frame)
+        self.summary_frame = SummaryFrame(self.nb_summary,chamber_frame=self.chamber_frame ,nustream_frame=self.nustream_frame,pdu_frame=self.pdu_frame)
         self.summary_frame.pack(expand=True, fill='both')
 
     def update_chamber_status(self, status_info):
@@ -225,6 +238,7 @@ if __name__ == "__main__":
     root = WindowForm()
 
     updater = CombinedStatusUpdater(root, root.summary_frame, root.chamber_frame, root.nustream_frame, root.pdu_frame)
+
     updater.start()
 
     root.mainloop()

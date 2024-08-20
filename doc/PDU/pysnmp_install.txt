@@ -1,0 +1,5 @@
+pip install snmpclitools==0.6.4
+pip install pysnmp==4.4.12
+https://github.com/etingof/pysnmp
+pip install pyasyncore==1.0.4
+https://github.com/simonrob/pyasyncore

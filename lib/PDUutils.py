@@ -50,8 +50,9 @@ if __name__ == "__main__":
 
     time.sleep(10)
 
+    '''
     pdu_ctrl.pdu_off(pdu_ports[0])
     pdu_ctrl.pdu_off(pdu_ports[1])
     pdu_ctrl.pdu_off(pdu_ports[2])
     pdu_ctrl.pdu_off(pdu_ports[3])
-    
+    '''
